@@ -151,6 +151,7 @@ button:focus-visible {
     repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 24px),
     #071119;
   flex: 1 1 auto;
+  contain: layout paint style;
   min-height: 0;
   overflow: hidden;
   position: relative;
@@ -428,11 +429,13 @@ button:focus-visible {
 }
 
 .loose-gem {
+  animation: gemSpin 2.8s linear infinite;
   color: var(--gem);
-  filter: drop-shadow(0 0 5px rgba(255,210,63,.75));
   font-size: clamp(8px, 2.2vw, 12px);
   pointer-events: none;
   position: absolute;
+  text-shadow: 0 0 4px rgba(255,210,63,.7);
+  transform: translate(-50%, -50%);
   z-index: 13;
 }
 
@@ -441,6 +444,7 @@ button:focus-visible {
   pointer-events: none;
   position: absolute;
   transform: translate(-50%, -50%);
+  transition: left 55ms linear, top 55ms linear;
   width: 17px;
   z-index: 24;
 }
@@ -480,12 +484,11 @@ button:focus-visible {
 
 .runner-leg.one { left: 5px; transform: rotate(15deg); }
 .runner-leg.two { right: 4px; transform: rotate(-15deg); }
-.runner.player { color: var(--cyan); filter: drop-shadow(0 0 5px rgba(49,230,255,.45)); }
-.runner.enemy { color: var(--red); filter: drop-shadow(0 0 5px rgba(255,78,95,.45)); }
+.runner.player { color: var(--cyan); }
+.runner.enemy { color: var(--red); }
 
 .carried-gem {
   color: var(--gem);
-  filter: drop-shadow(0 0 4px var(--gem));
   font-size: 8px;
   left: 5px;
   position: absolute;
@@ -553,13 +556,13 @@ button:focus-visible {
   align-items: center;
   color: currentColor;
   display: flex;
-  filter: drop-shadow(0 0 3px currentColor);
   font-size: clamp(10px, 2.8vw, 15px);
   height: 17px;
   justify-content: center;
   pointer-events: none;
   position: absolute;
   transform: translate(-50%, -50%);
+  transition: left 55ms linear, top 55ms linear;
   width: 17px;
   z-index: 25;
 }
@@ -581,11 +584,12 @@ button:focus-visible {
 .shot {
   background: currentColor;
   border-radius: 4px;
-  box-shadow: 0 0 7px currentColor;
+  box-shadow: 0 0 3px currentColor;
   height: 8px;
   pointer-events: none;
   position: absolute;
   transform: translate(-50%, -50%);
+  transition: left 55ms linear, top 55ms linear;
   width: 3px;
   z-index: 26;
 }
@@ -603,6 +607,7 @@ button:focus-visible {
   position: absolute;
   text-shadow: 0 1px 2px #000;
   transform: translate(-50%, -50%);
+  transition: top 55ms linear;
   z-index: 35;
 }
 
@@ -692,7 +697,6 @@ button:focus-visible {
 
 .match-overlay {
   align-items: center;
-  backdrop-filter: blur(5px);
   background: rgba(2, 8, 12, .84);
   display: flex;
   flex-direction: column;
@@ -907,6 +911,11 @@ button:focus-visible {
 @keyframes belt {
   from { transform: translateX(-2px); }
   to { transform: translateX(2px); }
+}
+
+@keyframes gemSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 @keyframes hover {

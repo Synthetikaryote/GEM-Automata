@@ -100,6 +100,10 @@ const PIECES: Piece[] = [
 ];
 
 const PIECE_BY_ID = Object.fromEntries(PIECES.map((piece) => [piece.id, piece])) as Record<string, Piece>;
+const SIMULATION_INTERVAL_MS = 50;
+const MAX_ATTACKERS_PER_SIDE = 32;
+const MAX_SHOTS_PER_SIDE = 48;
+const MAX_SPARKS = 28;
 const FILTERS: { id: Category; label: string }[] = [
   { id: "all", label: "ALL" },
   { id: "automation", label: "AUTO" },
@@ -145,10 +149,12 @@ function countPiece(state: GameState, side: Side, id: string) {
 }
 
 function addSpark(state: GameState, x: number, y: number, text: string, tone: Spark["tone"]) {
+  if (state.sparks.length >= MAX_SPARKS) state.sparks.shift();
   state.sparks.push({ id: state.nextId++, x, y, text, life: 1.1, tone });
 }
 
 function addUnit(state: GameState, structure: Structure, kind: string, icon: string, hp: number, damage: number, speed: number, flying = false, role: Unit["role"] = "attacker") {
+  if (role === "attacker" && state.units.filter((unit) => unit.side === structure.side && unit.role === "attacker").length >= MAX_ATTACKERS_PER_SIDE) return;
   const hasPortal = countPiece(state, structure.side, "portal") > 0;
   const normalY = structure.side === "player" ? structure.y - 2 : structure.y + 2;
   const portalY = structure.side === "player" ? 58 : 42;
@@ -233,6 +239,7 @@ function runRunner(state: GameState, side: Side, dt: number) {
 }
 
 function fireShot(state: GameState, structure: Structure, kind: string, damage: number, speed = 32, spread = 0) {
+  if (state.shots.filter((shot) => shot.side === structure.side).length >= MAX_SHOTS_PER_SIDE) return;
   state.shots.push({
     id: state.nextId++, side: structure.side, kind,
     x: structure.x + spread,
@@ -418,7 +425,7 @@ function step(previous: GameState, dt: number): GameState {
     ...previous,
     hp: { ...previous.hp }, energy: { ...previous.energy },
     runners: { player: { ...previous.runners.player }, enemy: { ...previous.runners.enemy } },
-    gems: previous.gems.map((gem) => ({ ...gem, pulse: gem.pulse + dt })),
+    gems: [...previous.gems],
     structures: previous.structures.map((structure) => ({ ...structure })),
     units: previous.units.map((unit) => ({ ...unit })),
     shots: previous.shots.map((shot) => ({ ...shot })),
@@ -469,16 +476,14 @@ export default function Game() {
   const lastTime = useRef(0);
 
   useEffect(() => {
-    let frame = 0;
-    const loop = (time: number) => {
-      if (!lastTime.current) lastTime.current = time;
-      const dt = Math.min(0.05, (time - lastTime.current) / 1000);
-      lastTime.current = time;
+    lastTime.current = performance.now();
+    const timer = window.setInterval(() => {
+      const now = performance.now();
+      const dt = Math.min(0.15, (now - lastTime.current) / 1000);
+      lastTime.current = now;
       if (!paused) setGame((current) => step(current, dt));
-      frame = requestAnimationFrame(loop);
-    };
-    frame = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frame);
+    }, SIMULATION_INTERVAL_MS);
+    return () => window.clearInterval(timer);
   }, [paused]);
 
   const visiblePieces = useMemo(() => filter === "all" ? PIECES : PIECES.filter((piece) => piece.category === filter), [filter]);
@@ -570,7 +575,7 @@ export default function Game() {
             })}
           </div>
 
-          {game.gems.map((gem) => <div key={gem.id} className={`loose-gem ${gem.side}`} style={{ left: `${gem.x}%`, top: `${gem.y}%`, transform: `translate(-50%, -50%) rotate(${gem.pulse * 80}deg)` }}>◆</div>)}
+          {game.gems.map((gem) => <div key={gem.id} className={`loose-gem ${gem.side}`} style={{ left: `${gem.x}%`, top: `${gem.y}%`, animationDelay: `${-gem.pulse}s` }}>◆</div>)}
 
           {(["enemy", "player"] as Side[]).map((side) => {
             const runner = game.runners[side];
