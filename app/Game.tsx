@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Profiler, useEffect, useMemo, useRef, useState } from "react";
+import type { ProfilerOnRenderCallback } from "react";
 
 type Side = "player" | "enemy";
 type Category = "all" | "automation" | "defense" | "attack" | "support";
@@ -64,6 +65,67 @@ type GameState = {
   nextId: number;
   toast: string;
   toastTimer: number;
+};
+
+type GemPerformanceSnapshot = {
+  renderer: "react-dom";
+  displayFps: number;
+  simulationMs: number;
+  simulationMaxMs: number;
+  reactRenderMs: number;
+  reactRenderMaxMs: number;
+  timerDriftMs: number;
+  longTasks: number;
+  domNodes: number;
+  dynamicNodes: number;
+  units: number;
+  shots: number;
+  structures: number;
+  visibility: string;
+  topLevel: boolean;
+  devicePixelRatio: number;
+  viewport: string;
+  updatedAt: number;
+};
+
+declare global {
+  interface Window {
+    __gemPerf?: GemPerformanceSnapshot;
+  }
+}
+
+let diagnosticsEnabled = false;
+
+function performanceSnapshot() {
+  if (typeof window === "undefined" || !diagnosticsEnabled) return null;
+  window.__gemPerf ??= {
+    renderer: "react-dom",
+    displayFps: 0,
+    simulationMs: 0,
+    simulationMaxMs: 0,
+    reactRenderMs: 0,
+    reactRenderMaxMs: 0,
+    timerDriftMs: 0,
+    longTasks: 0,
+    domNodes: 0,
+    dynamicNodes: 0,
+    units: 0,
+    shots: 0,
+    structures: 0,
+    visibility: "unknown",
+    topLevel: true,
+    devicePixelRatio: 1,
+    viewport: "0x0",
+    updatedAt: 0,
+  };
+  return window.__gemPerf;
+}
+
+const recordReactRender: ProfilerOnRenderCallback = (_id, _phase, actualDuration) => {
+  const snapshot = performanceSnapshot();
+  if (!snapshot) return;
+  snapshot.reactRenderMs = snapshot.reactRenderMs ? snapshot.reactRenderMs * 0.8 + actualDuration * 0.2 : actualDuration;
+  snapshot.reactRenderMaxMs = Math.max(snapshot.reactRenderMaxMs, actualDuration);
 };
 
 const PIECES: Piece[] = [
@@ -421,6 +483,7 @@ function aiBuild(state: GameState) {
 
 function step(previous: GameState, dt: number): GameState {
   if (previous.match !== "playing") return previous;
+  const simulationStarted = performance.now();
   const state: GameState = {
     ...previous,
     hp: { ...previous.hp }, energy: { ...previous.energy },
@@ -456,6 +519,15 @@ function step(previous: GameState, dt: number): GameState {
 
   if (state.hp.enemy <= 0) { state.hp.enemy = 0; state.match = "won"; state.toast = "RIVAL CORE SHATTERED"; state.toastTimer = 99; }
   if (state.hp.player <= 0) { state.hp.player = 0; state.match = "lost"; state.toast = "YOUR CORE SHATTERED"; state.toastTimer = 99; }
+  const snapshot = performanceSnapshot();
+  if (snapshot) {
+    const duration = performance.now() - simulationStarted;
+    snapshot.simulationMs = snapshot.simulationMs ? snapshot.simulationMs * 0.8 + duration * 0.2 : duration;
+    snapshot.simulationMaxMs = Math.max(snapshot.simulationMaxMs, duration);
+    snapshot.units = state.units.length;
+    snapshot.shots = state.shots.length;
+    snapshot.structures = state.structures.length;
+  }
   return state;
 }
 
@@ -479,12 +551,90 @@ export default function Game() {
     lastTime.current = performance.now();
     const timer = window.setInterval(() => {
       const now = performance.now();
+      const snapshot = performanceSnapshot();
+      if (snapshot) snapshot.timerDriftMs = snapshot.timerDriftMs * 0.8 + Math.max(0, now - lastTime.current - SIMULATION_INTERVAL_MS) * 0.2;
       const dt = Math.min(0.15, (now - lastTime.current) / 1000);
       lastTime.current = now;
       if (!paused) setGame((current) => step(current, dt));
     }, SIMULATION_INTERVAL_MS);
     return () => window.clearInterval(timer);
   }, [paused]);
+
+  useEffect(() => {
+    const diagnosticsRequested = new URLSearchParams(window.location.search).get("perf") === "1";
+    if (!diagnosticsRequested) return;
+    diagnosticsEnabled = true;
+
+    const panel = document.createElement("aside");
+    panel.className = "perf-panel";
+    panel.setAttribute("aria-label", "GEM performance diagnostics");
+    const readout = document.createElement("pre");
+    const probeTitle = document.createElement("b");
+    probeTitle.textContent = "MOTION PROBES";
+    const compositorProbe = document.createElement("div");
+    compositorProbe.className = "perf-probe-row";
+    compositorProbe.innerHTML = '<span>GPU transform</span><i class="perf-probe transform-probe"></i>';
+    const layoutProbe = document.createElement("div");
+    layoutProbe.className = "perf-probe-row";
+    layoutProbe.innerHTML = '<span>CPU left/top</span><i class="perf-probe layout-probe"></i>';
+    panel.append(readout, probeTitle, compositorProbe, layoutProbe);
+    document.querySelector(".game-phone")?.appendChild(panel);
+
+    let frame = 0;
+    let frames = 0;
+    let sampleStarted = performance.now();
+    const sampleFrames = (now: number) => {
+      frames += 1;
+      const elapsed = now - sampleStarted;
+      if (elapsed >= 1000) {
+        const snapshot = performanceSnapshot();
+        if (snapshot) {
+          snapshot.displayFps = Math.round((frames * 1000) / elapsed);
+          snapshot.domNodes = document.getElementsByTagName("*").length;
+          snapshot.dynamicNodes = document.querySelectorAll(".runner,.structure,.unit,.shot,.spark,.loose-gem").length;
+          snapshot.visibility = document.visibilityState;
+          snapshot.topLevel = window.self === window.top;
+          snapshot.devicePixelRatio = window.devicePixelRatio;
+          snapshot.viewport = `${window.innerWidth}x${window.innerHeight}`;
+          snapshot.updatedAt = Date.now();
+          document.documentElement.dataset.gemPerf = JSON.stringify(snapshot);
+          readout.textContent = [
+            `GEM PERF · ${snapshot.renderer}`,
+            `display       ${snapshot.displayFps} fps`,
+            `simulation    ${snapshot.simulationMs.toFixed(2)} ms  max ${snapshot.simulationMaxMs.toFixed(1)}`,
+            `React render  ${snapshot.reactRenderMs.toFixed(2)} ms  max ${snapshot.reactRenderMaxMs.toFixed(1)}`,
+            `timer drift   ${snapshot.timerDriftMs.toFixed(1)} ms`,
+            `long tasks    ${snapshot.longTasks}`,
+            `DOM           ${snapshot.domNodes} total / ${snapshot.dynamicNodes} moving`,
+            `battle        ${snapshot.structures} builds / ${snapshot.units} units / ${snapshot.shots} shots`,
+            `page          ${snapshot.visibility} · ${snapshot.topLevel ? "top-level" : "embedded"}`,
+            `screen        ${snapshot.viewport} @${snapshot.devicePixelRatio}x`,
+          ].join("\n");
+        }
+        frames = 0;
+        sampleStarted = now;
+      }
+      frame = requestAnimationFrame(sampleFrames);
+    };
+    frame = requestAnimationFrame(sampleFrames);
+
+    let longTaskObserver: PerformanceObserver | null = null;
+    if (typeof PerformanceObserver !== "undefined" && PerformanceObserver.supportedEntryTypes?.includes("longtask")) {
+      longTaskObserver = new PerformanceObserver((entries) => {
+        const snapshot = performanceSnapshot();
+        if (snapshot) snapshot.longTasks += entries.getEntries().length;
+      });
+      longTaskObserver.observe({ entryTypes: ["longtask"] });
+    }
+
+    return () => {
+      cancelAnimationFrame(frame);
+      longTaskObserver?.disconnect();
+      panel.remove();
+      delete document.documentElement.dataset.gemPerf;
+      diagnosticsEnabled = false;
+    };
+  }, []);
 
   const visiblePieces = useMemo(() => filter === "all" ? PIECES : PIECES.filter((piece) => piece.category === filter), [filter]);
   const selected = PIECE_BY_ID[selectedPiece];
@@ -526,6 +676,7 @@ export default function Game() {
   const cooldownPercent = Math.max(0, Math.min(100, (1 - game.slashCooldown / 2.5) * 100));
 
   return (
+    <Profiler id="GEMGame" onRender={recordReactRender}>
     <main className="game-shell">
       <section className="game-phone" aria-label="GEM automation duel">
         <header className="topbar">
@@ -630,5 +781,6 @@ export default function Game() {
         </section>
       </section>
     </main>
+    </Profiler>
   );
 }

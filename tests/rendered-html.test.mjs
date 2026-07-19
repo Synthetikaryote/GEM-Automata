@@ -39,6 +39,7 @@ test("ships the requested automation and combat catalog", async () => {
   assert.match(game, /270° GEMSLASH/);
   assert.match(game, /SIMULATION_INTERVAL_MS = 50/);
   assert.match(game, /MAX_ATTACKERS_PER_SIDE = 32/);
-  assert.doesNotMatch(game, /requestAnimationFrame/);
+  assert.match(game, /diagnosticsRequested/);
+  assert.match(game, /GEM PERF/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

@@ -908,6 +908,76 @@ button:focus-visible {
   top: 3px;
 }
 
+.perf-panel {
+  background: rgba(2, 7, 11, .94);
+  border: 1px solid var(--gem);
+  color: #dff9ff;
+  left: 6px;
+  padding: 7px;
+  pointer-events: none;
+  position: absolute;
+  top: 6px;
+  width: 210px;
+  z-index: 100;
+}
+
+.perf-panel pre {
+  font: 7px/1.45 var(--font-geist-mono), monospace;
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+}
+
+.perf-panel > b {
+  color: var(--gem);
+  display: block;
+  font-size: 6px;
+  letter-spacing: .12em;
+  margin-bottom: 3px;
+}
+
+.perf-probe-row {
+  align-items: center;
+  display: grid;
+  font: 6px var(--font-geist-mono), monospace;
+  gap: 4px;
+  grid-template-columns: 52px 1fr;
+  height: 9px;
+  overflow: hidden;
+  position: relative;
+}
+
+.perf-probe-row::after {
+  background: #29404b;
+  content: "";
+  height: 1px;
+  left: 56px;
+  position: absolute;
+  right: 0;
+  top: 4px;
+}
+
+.perf-probe {
+  background: currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 4px currentColor;
+  height: 6px;
+  justify-self: start;
+  position: relative;
+  width: 6px;
+  z-index: 1;
+}
+
+.transform-probe {
+  animation: transformProbe 1.2s linear infinite alternate;
+  color: var(--cyan);
+}
+
+.layout-probe {
+  animation: layoutProbe 1.2s linear infinite alternate;
+  color: var(--red);
+  left: 0;
+}
+
 @keyframes belt {
   from { transform: translateX(-2px); }
   to { transform: translateX(2px); }
@@ -916,6 +986,16 @@ button:focus-visible {
 @keyframes gemSpin {
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes transformProbe {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(138px, 0, 0); }
+}
+
+@keyframes layoutProbe {
+  from { left: 0; }
+  to { left: 138px; }
 }
 
 @keyframes hover {
