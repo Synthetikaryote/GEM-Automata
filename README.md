@@ -1,61 +1,49 @@
-# GEM: Automata Duel
+# Riftward: Keepers of the Wild
 
-GEM is a portrait-first, one-screen automation battler. Two autonomous duelists collect gems, refine them into charge, and spend that charge on machines, defenses, creatures, and production chains. You own the lower half of the arena; a rival AI controls the upper half.
+Riftward is the new playable direction for **GEM-Automata**: a single-screen, portrait real-time strategy game for a phone browser. The original GEM implementation remains in Git history.
 
 ## Play
 
-1. Pick a build piece from the horizontal dock.
-2. Tap an open blue pad in your half of the arena.
-3. Let your runner gather gems—or automate the job with hauler bots, magnets, presses, and conveyors.
-4. Use the **SLASH** button to destroy nearby bullets and wound invading creatures in a 270-degree arc.
-5. Reduce the rival core from 100 HP to zero before it does the same to you.
+The lower realm belongs to you; the Hollow builds in the upper realm. Both keepers mine the same regenerating crystal seams in the wild rift.
 
-The game is designed for a vertical phone screen, but centers itself inside a phone-sized arena on desktop.
+1. Drag a blueprint from the bottom dock onto an empty lower tile. Tapping a blueprint and then a tile also works.
+2. Your keeper walks to each blueprint and constructs it. Between jobs, they mine crystals and physically deliver them to the nearest sanctum or waystation.
+3. Moonwells automatically summon wolves. Thornspires defend and Runestones draw attacks.
+4. Star Archives create knowledge. Research Awakening to unlock Titan Forges, Wisp Lanterns, and Mending Groves.
+5. Destroy the rival sanctum to win. After five minutes, both cores begin to decay to resolve stalemates.
 
-## Build catalog
+Tap a crystal to focus a keeper on it, or tap open ground in your realm to send a keeper there briefly. Tap your buildings to inspect, upgrade, or salvage them. Hire up to four keepers. Rift Pulse heals friendly units and damages/slows enemies near your first keeper, with a 25-second cooldown. A 12-second Rift Bloom doubles mining every minute, starting at 45 seconds.
 
-The core set includes a Bolt Shooter, Shield Emitter, Alloy Wall, Spider Hatchery, Hauler Bot, Conveyor Belt, Medbay, Razorling Den, and Orbit Wisp.
+Wanderer, Warden, and Oracle change the rival's build decision cadence. The rival pays real crystal costs and uses the same construction and hauling rules.
 
-Twenty additional pieces expand the strategy:
+## Phone installation
 
-- Gem Magnet — pulls distant gems into collection range.
-- Prism Press — increases the value of delivered gems.
-- Burst Turret — fires a three-shot spread.
-- Prism Lance — fires slow, heavy piercing beams.
-- Storm Fork — chains lightning through enemy creatures.
-- Frost Lens — slows enemies inside friendly territory.
-- Firefly Roost — launches flying attackers that bypass walls.
-- Siege Beetle — produces slow armored assault creatures.
-- Medic Drone — repairs the most damaged friendly structure.
-- Guardian Golem — stays home and intercepts intruders.
-- Star Mine — detonates when enemies cross the center line.
-- Mirror Pylon — reflects some incoming shots.
-- Mending Grove — repairs every friendly construction.
-- Tempo Coil — accelerates production and weapon cycles.
-- Siphon Bloom — steals unspent charge from the rival.
-- Gem Vault — builds a protected passive reserve.
-- Chance Engine — generates unpredictable jackpots.
-- Rift Gate — deploys new attackers near the center line.
-- Thorn Mesh — damages creatures that strike it.
-- Decoy Idol — absorbs attacks meant for valuable machines.
+Open the game in Chrome on iPhone, then **Share → Add to Home Screen → Add**. A dedicated icon, web manifest, portrait orientation preference, safe-area layout, standalone display, and service worker are included. The field guide contains these directions too.
 
-## Run locally
+Battles automatically save to this device every three seconds and when the page becomes hidden. Returning resumes from a paused state. This is local state, not cross-device cloud synchronization. The service worker caches artwork and loaded game resources for repeat/offline visits after a successful online load. Hosted sign-in and browser storage policies can still require a connection. Physical iPhone installation has not been tested in this environment.
 
-Requires Node.js 22.13 or newer.
+Desktop keys: **1–5** select foundations, **Space** pauses/resumes, **Q** casts Rift Pulse, and **Escape** cancels placement.
 
-```bash
+## Development
+
+Retains the repository's React 19, TypeScript, Vite, vinext, and Cloudflare Worker architecture. No new production dependencies, backend records, or external runtime asset services were added.
+
+```sh
 npm install
 npm run dev
-```
-
-Then open the local URL printed by the development server.
-
-## Checks
-
-```bash
 npm test
 ```
 
-## Tech
+Use Node.js 22.13+ (24 recommended). Gameplay tests import the pure TypeScript simulation and run deterministic complete battles; server tests exercise the compiled Worker and check PWA assets.
 
-GEM is a single-route React game built with Next.js-compatible vinext and Vite. It uses no external art, game engine, database, login, or analytics. All simulation runs locally in the browser.
+- `app/game/engine.ts`: deterministic simulation, worker orders, economy, research, enemy AI, combat, and save format.
+- `app/game/renderer.ts`: canvas rendering of the real simulation, original sprites, effects, and build grid.
+- `app/game/assets.ts`: explicit source rectangles for the generated sprite atlas.
+- `app/Game.tsx`: touch and keyboard input, HUD, game screens, installation, audio cues, and local saves.
+- `public/art/`: original generated terrain, twelve sprites, and app icons. Only resizing, format conversion, and icon padding were used in asset preparation.
+
+Canvas rendering is independent of the React HUD. Simulation runs at 30 updates/second with a bounded timestep, while visuals use requestAnimationFrame. Each army is capped at 28 combat units plus four keepers, and effects are capped at 110. Existing social preview art remains unchanged.
+
+## Art direction
+
+Original artwork was created with built-in image generation for this game: a moonlit moss-and-stone arena with jade and burgundy realms, a transparent twelve-object fantasy RTS sprite atlas, and a luminous emerald crystal within a broken antique gold ring. Asset briefs specified clear silhouettes, no text, and a consistent elevated RTS viewpoint. The atlas is cropped at render time rather than repainted or replaced with geometry.

@@ -40,7 +40,20 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    // vinext 0.0.50 reads the Viewport export but omits viewportFit when
+    // serializing it. Normalize the single existing tag for iPhone safe areas.
+    if (url.pathname === "/" && response.headers.get("content-type")?.includes("text/html")) {
+      const html = (await response.text()).replace(
+        /<meta name="viewport" content="[^"]*"\s*\/?\s*>/,
+        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>',
+      );
+      const headers = new Headers(response.headers);
+      headers.delete("content-length");
+      headers.delete("etag");
+      return new Response(html, { status: response.status, statusText: response.statusText, headers });
+    }
+    return response;
   },
 };
 

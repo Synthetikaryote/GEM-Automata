@@ -1,57 +1,13 @@
-import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-export async function generateMetadata(): Promise<Metadata> {
-  const requestHeaders = await headers();
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3001";
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const origin = `${protocol}://${host}`;
-  const description = "Gather, refine, automate, defend, and overwhelm a rival machine intelligence.";
-
-  return {
-    metadataBase: new URL(origin),
-    title: "GEM — Automata Duel",
-    description,
-    icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
-    openGraph: {
-      title: "GEM — Automata Duel",
-      description,
-      type: "website",
-      images: [{ url: `${origin}/og.png`, width: 1728, height: 910, alt: "GEM Automata Duel — cyan and red machines battle over a golden gem" }],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "GEM — Automata Duel",
-      description,
-      images: [`${origin}/og.png`],
-    },
-  };
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en" className="gem-document">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
-  );
-}
+import type { Metadata, Viewport } from 'next';
+import './globals.css';
+const origin='https://gem-automata.synthetikaryote.chatgpt.site';
+export const metadata:Metadata={
+  metadataBase:new URL(origin),title:'Riftward | Keepers of the Wild',description:'A pocket-sized real-time strategy game. Build your sanctum, harvest the wild rift, and overcome a rival keeper.',
+  applicationName:'Riftward',manifest:'/manifest.webmanifest',appleWebApp:{capable:true,statusBarStyle:'black-translucent',title:'Riftward'},
+  other:{'apple-mobile-web-app-capable':'yes'},
+  icons:{icon:[{url:'/art/icon-192.png',sizes:'192x192',type:'image/png'}],apple:[{url:'/art/apple-touch-icon.png',sizes:'180x180',type:'image/png'}]},
+  openGraph:{title:'GEM — Automata Duel',description:'Gather, refine, automate, defend, and overwhelm a rival machine intelligence.',type:'website',images:[{url:`${origin}/og.png`,width:1728,height:910,alt:'GEM Automata Duel — cyan and red machines battle over a golden gem'}]},
+  twitter:{card:'summary_large_image',title:'GEM — Automata Duel',description:'Gather, refine, automate, defend, and overwhelm a rival machine intelligence.',images:[`${origin}/og.png`]},
+};
+export const viewport:Viewport={width:'device-width',initialScale:1,viewportFit:'cover',themeColor:'#0b1c20'};
+export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){return <html lang="en"><body>{children}</body></html>;}
