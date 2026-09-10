@@ -1,0 +1,10 @@
+const CACHE='emberline-foundry-v1';
+const ASSETS=['/emberline-art/battlefield.webp','/emberline-art/sprites.png','/emberline-art/icon-192.png','/emberline-art/icon-512.png','/emberline-art/apple-touch-icon.png','/emberline-art/icon-maskable.png','/emberline.webmanifest'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(async c=>{await c.addAll(ASSETS);const r=await fetch('/emberline',{redirect:'error'});if(r.ok&&r.headers.get('content-type')?.includes('text/html'))await c.put('/emberline',r);await self.skipWaiting();})));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('emberline-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('message',e=>{if(e.data?.type==='CACHE_RUNTIME'&&Array.isArray(e.data.urls)){const urls=e.data.urls.filter(value=>{try{const u=new URL(value);return u.origin===self.location.origin&&/\.(js|css|woff2?)$/.test(u.pathname);}catch{return false;}});e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(urls.map(u=>c.add(u)))));}});
+self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);if(r.method!=='GET'||u.origin!==self.location.origin||u.pathname.startsWith('/api/')||u.pathname.includes('auth')||u.searchParams.has('_rsc'))return;
+if(r.mode==='navigate'&&u.pathname==='/emberline'){e.respondWith(fetch(r).then(async response=>{if(response.ok&&!response.redirected&&response.headers.get('content-type')?.includes('text/html')){const c=await caches.open(CACHE);await c.put('/emberline',response.clone());}return response;}).catch(async()=>await caches.match('/emberline')||new Response('Connect once to open Emberline.',{status:503})));return;}
+if(!['script','style','image','font'].includes(r.destination)&&u.pathname!=='/emberline.webmanifest')return;
+e.respondWith(caches.match(r).then(cached=>cached||fetch(r).then(response=>{if(response.ok&&!response.redirected){const copy=response.clone();e.waitUntil(caches.open(CACHE).then(c=>c.put(r,copy)));}return response;})));
+});

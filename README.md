@@ -1,6 +1,32 @@
-# Riftward: Keepers of the Wild
+# GEM-Automata: two playable strategy games
 
-Riftward is the new playable direction for **GEM-Automata**: a single-screen, portrait real-time strategy game for a phone browser. The original GEM implementation remains in Git history.
+## Emberline: Foundry Wars
+
+**New separate game at `/emberline`.** Original Riftward remains at `/` with its own save and installation identity.
+
+Emberline is a portrait factory RTS with brass machinery, glowing ore, mechanical wolves, siege rams, and shield drones. Your infinite mine sits at the bottom-left rear corner; keepers carry ore to the receiving depot at bottom right. The rival uses the same layout rotated 180 degrees. There are no neutral resource deposits.
+
+Start with the Belt tool: connect the mine's orange output to the depot's cyan input. Drag between ports or tap them in sequence. Ore and alloy visibly travel through conveyors; connected outputs split supply fairly, and full buffers apply backpressure. Mining capacity is shared across outputs. Machines do not produce without their input material.
+
+- Ore delivered to the depot earns 2 credits. Keepers continue hauling between construction jobs.
+- Ore supplied to a Skitterworks produces mechanical wolves; ore supplied to a Signal Lab generates research.
+- A Crucible smelts ore into alloy. Deliver alloy to the depot for 6 credits and 1 stored alloy, or route it directly to a heavy factory.
+- Heavy Industry unlocks Ram Foundries and Aegis Bays. Siege rams outrange flak and pierce core armor. Shield drones heal nearby allies and reduce incoming damage. Wolves can intercept siege; flak counters packs.
+- Logistics research increases throughput, belt speed and keeper capacity. Expanded Command increases army capacity to 18. Reinforced Foundations improves survivability.
+
+The rear economy is protected: enemies cannot kill keepers, mines, depots, or conveyors. Destroyed forward factories retain their connections and rebuild for 40% of their original credit cost. Emergency Grid repairs the base, heals nearby defenders, and slows invaders. Command limits curb runaway armies. After eight minutes both cores overheat to resolve stalemates.
+
+Tap machines to inspect their buffers and connections, upgrade, salvage, or rebuild. Drag blueprints onto the lower grid or tap a blueprint and then a tile. Keyboard: B for Belt, Q for Emergency Grid, Space to pause, Escape to cancel.
+
+Emberline has a separate icon, manifest, service worker, and local save (`emberline-foundry-v1`). Install its `/emberline` page using the browser's Add to Home Screen action. Battles resume paused; saves remain local to the browser or installed app. Original Riftward saves are not migrated or overwritten.
+
+Implementation: `app/emberline/engine.ts`, `renderer.ts`, `Emberline.tsx`, `emberline.css`; independent generated terrain, transparent sprite atlas and icons in `public/emberline-art/`. No new dependencies. Tests cover physical delivery and production, rotational layout, material rejection, research, protected income, rebuilding, counters, healing, full wins/losses and PWA metadata. The combined 18-test suite passes. Browser interaction and physical iPhone installation have not been tested in this environment.
+
+---
+
+## Riftward: Keepers of the Wild
+
+Riftward is the original fantasy strategy game in **GEM-Automata**: a single-screen, portrait real-time strategy game for a phone browser. The original GEM implementation remains in Git history.
 
 ## Play
 
