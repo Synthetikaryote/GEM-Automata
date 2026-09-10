@@ -8,6 +8,11 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
+    "build:host": "node scripts/build-host.mjs",
+    "test:host": "node --test tests/hosted-release.test.mjs",
+    "typecheck:host": "tsc --noEmit -p tsconfig.host.json",
+    "ci:local": "python scripts/local_ci.py --local",
+    "deploy:local": "python scripts/local_ci.py --deploy",
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",

@@ -49,11 +49,10 @@ export default defineConfig(async () => {
       : undefined,
     plugins: [
       vinext(),
-      sites(),
-      cloudflare({
+      ...(process.env.GEM_HOSTED === "1" ? [] : [sites(), cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         config: localBindingConfig,
-      }),
+      })]),
     ],
   };
 });

@@ -43,3 +43,7 @@ next-env.d.ts
 
 # local preview process files
 .devserver.*
+/.release-build/
+/__pycache__/
+*.pyc
+*.tsbuildinfo

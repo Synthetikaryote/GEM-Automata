@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  ...(process.env.GEM_HOSTED === "1" ? { basePath: "/gem-automata" } : {}),
 };
 
 export default nextConfig;

@@ -2,6 +2,15 @@
 
 GEM is a portrait-first, one-screen automation battler. Two autonomous duelists collect gems, refine them into charge, and spend that charge on machines, defenses, creatures, and production chains. You own the lower half of the arena; a rival AI controls the upper half.
 
+**Play publicly:** [GEM: Automata Duel](https://halo.tail34c017.ts.net:8443/gem-automata/).
+No Tailscale installation or login is needed. Each browser runs its own match;
+this version does not save matches across reloads.
+
+Development lives at `C:\Claude\dev\gem-automata`; the read-only hosted release
+lives at `C:\Claude\runtime\gem-automata`. Halo-local CI checks exact commits,
+posts `local/gem-automata` to GitHub, and publishes tested main with rollback.
+See [local operations](docs/LOCAL_OPERATIONS.md) and the [game map](docs/GAME_GUIDE.md).
+
 ## Play
 
 1. Pick a build piece from the horizontal dock.
@@ -54,8 +63,9 @@ Then open the local URL printed by the development server.
 
 ```bash
 npm test
+npm run ci:local
 ```
 
 ## Tech
 
-GEM is a single-route React game built with Next.js-compatible vinext and Vite. It uses no external art, game engine, database, login, or analytics. All simulation runs locally in the browser.
+GEM is a single-route React game built with Next.js-compatible vinext and Vite. It uses no external art, game engine, database, login, or analytics. All simulation runs locally in the browser. The Halo build ships pre-rendered HTML, the existing React hydration bundle, styles, and fonts through a dependency-free loopback server behind Tailscale Funnel. The original Sites configuration is retained for source history.
