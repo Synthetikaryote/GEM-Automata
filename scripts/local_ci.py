@@ -104,9 +104,10 @@ def lock(root):
                 fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
-def test_candidate(dev, automation, sha, label):
+def test_candidate(dev, automation, sha, label, retry_failed=False):
     artifact = automation / "artifacts" / sha
     receipt = automation / "passed" / f"{sha}.json"
+    failed_receipt = automation / "failed" / f"{sha}.json"
     if receipt.is_file() and artifact.is_dir():
         try:
             verify(artifact, sha)
@@ -117,6 +118,14 @@ def test_candidate(dev, automation, sha, label):
             return artifact
         except (ValueError, OSError):
             raise RuntimeError(f"Cached release was modified: {artifact}; inspect it before retrying")
+    if failed_receipt.is_file() and not retry_failed:
+        raise RuntimeError(f"{label} already failed at {sha}; update the commit or retry explicitly with --test-ref")
+    required = ["scripts/build-host.mjs", "scripts/server.mjs", "tsconfig.host.json", "tests/test_release.py"]
+    tracked = set(git(dev, "ls-tree", "-r", "--name-only", sha).splitlines())
+    if any(filename not in tracked for filename in required):
+        status(sha, "failure", f"{label}: rebase onto main to include the Halo CI/release files")
+        save_json(failed_receipt, {"commit": sha, "reason": "Missing Halo release files; rebase onto main", "failed_at": time.time()})
+        raise RuntimeError(f"{label} predates the Halo release setup; rebase onto main")
     worktrees = automation / "worktrees"
     worktrees.mkdir(parents=True, exist_ok=True)
     worktree = worktrees / ("run-" + uuid.uuid4().hex)
@@ -137,8 +146,9 @@ def test_candidate(dev, automation, sha, label):
         save_json(receipt, {"commit": sha, "tree": release["tree"], "passed_at": time.time(),
                             "manifest_sha256": hashlib.sha256((artifact / ".release.json").read_bytes()).hexdigest()})
         return artifact
-    except Exception:
+    except Exception as exc:
         status(sha, "failure", f"{label}: local CI failed; see Halo gem_automata_ci log")
+        save_json(failed_receipt, {"commit": sha, "reason": str(exc), "failed_at": time.time()})
         raise
     finally:
         if worktree.parent.resolve() != worktrees.resolve() or not worktree.name.startswith("run-"):
@@ -255,7 +265,7 @@ def main():
         command(["git", "-C", args.dev, "fetch", "--prune", "origin"])
         if args.test_ref:
             sha = git(args.dev, "rev-parse", f"{args.test_ref}^{{commit}}")
-            test_candidate(args.dev, args.automation, sha, "selected commit")
+            test_candidate(args.dev, args.automation, sha, "selected commit", retry_failed=True)
             return
         sha = git(args.dev, "rev-parse", "origin/main")
         artifact = test_candidate(args.dev, args.automation, sha, "main")

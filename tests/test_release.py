@@ -63,6 +63,15 @@ class ReleaseTests(unittest.TestCase):
             self.assertEqual(ci.test_candidate(self.root / "dev", automation, "tested", "main"), artifact)
         publish_status.assert_not_called()
 
+    def test_scheduled_failure_is_cached_until_commit_changes_or_explicit_retry(self):
+        automation = self.root / "ci"
+        ci.save_json(automation / "failed/tested.json", {"reason": "failed"})
+        with patch.object(ci, "status") as publish_status, patch.object(ci, "gauntlet") as run_gate:
+            with self.assertRaisesRegex(RuntimeError, "already failed"):
+                ci.test_candidate(self.root / "dev", automation, "tested", "main")
+        publish_status.assert_not_called()
+        run_gate.assert_not_called()
+
     def test_failed_start_restores_previous_release_and_preserves_both(self):
         dev, automation = self.root / "dev", self.root / "ci"
         runtime = self.artifact(self.root / "runtime/gem-automata", "old")
