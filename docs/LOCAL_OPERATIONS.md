@@ -56,6 +56,10 @@ The status context is `local/gem-automata`; no GitHub-hosted Actions minutes
 are used. Main alone is published. A changed main is tested again; a failed
 gate cannot replace the last good release. Completed artifacts have SHA-256
 inventories and separate CI receipts, and are reused without rebuilding.
+Unchanged failed commits are also cached to avoid repeated installs and status
+spam. After correcting a transient environment failure, retry explicitly with
+`python scripts/local_ci.py --test-ref <commit-or-ref>`. PRs opened before this
+hosting setup need to rebase onto main to gain its release scripts.
 
 Publication acquires an exclusive file lock, rechecks main, stages the verified
 artifact next to the runtime, stops only its own Node process, moves the old
