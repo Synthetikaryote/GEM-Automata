@@ -54,6 +54,15 @@ class ReleaseTests(unittest.TestCase):
                 ci.validate_runtime(dev, runtime)
         ci.validate_runtime(dev, self.root / "runtime/gem-automata")
 
+    def test_cached_ci_does_not_repost_github_status_every_five_minutes(self):
+        automation = self.root / "ci"
+        artifact = self.artifact(automation / "artifacts/tested", "tested")
+        ci.save_json(automation / "passed/tested.json", {
+            "manifest_sha256": hashlib.sha256((artifact / ".release.json").read_bytes()).hexdigest()})
+        with patch.object(ci, "status") as publish_status:
+            self.assertEqual(ci.test_candidate(self.root / "dev", automation, "tested", "main"), artifact)
+        publish_status.assert_not_called()
+
     def test_failed_start_restores_previous_release_and_preserves_both(self):
         dev, automation = self.root / "dev", self.root / "ci"
         runtime = self.artifact(self.root / "runtime/gem-automata", "old")

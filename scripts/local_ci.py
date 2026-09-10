@@ -114,7 +114,6 @@ def test_candidate(dev, automation, sha, label):
             if proof.get("manifest_sha256") != hashlib.sha256((artifact / ".release.json").read_bytes()).hexdigest():
                 raise ValueError("CI receipt does not attest this artifact")
             print(f"REUSE tested {label}: {sha}", flush=True)
-            status(sha, "success", f"{label}: local tests and hosted release passed")
             return artifact
         except (ValueError, OSError):
             raise RuntimeError(f"Cached release was modified: {artifact}; inspect it before retrying")
@@ -134,9 +133,9 @@ def test_candidate(dev, automation, sha, label):
             artifact.rename(artifact.with_name(sha + ".incomplete-" + uuid.uuid4().hex))
         shutil.copytree(worktree / ".release-build", artifact)
         verify(artifact, sha)
+        status(sha, "success", f"{label}: local tests and hosted release passed")
         save_json(receipt, {"commit": sha, "tree": release["tree"], "passed_at": time.time(),
                             "manifest_sha256": hashlib.sha256((artifact / ".release.json").read_bytes()).hexdigest()})
-        status(sha, "success", f"{label}: local tests and hosted release passed")
         return artifact
     except Exception:
         status(sha, "failure", f"{label}: local CI failed; see Halo gem_automata_ci log")
