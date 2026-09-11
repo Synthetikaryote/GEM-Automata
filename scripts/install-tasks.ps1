@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$DevRoot = 'C:\Claude\dev\gem-automata',
+    [string]$DevRoot = 'C:\Claude\dev\emberline',
     [string]$AutomationRoot = 'C:\Claude\automations\gem_automata_ci'
 )
 $ErrorActionPreference = 'Stop'

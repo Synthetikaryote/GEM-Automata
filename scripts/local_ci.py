@@ -17,7 +17,7 @@ import uuid
 
 REPOSITORY = "Synthetikaryote/GEM-Automata"
 CONTEXT = "local/gem-automata"
-PUBLIC_URL = "https://halo.tail34c017.ts.net:8443/gem-automata/"
+PUBLIC_URL = "https://halo.tail34c017.ts.net:8443/gem-automata/emberline"
 
 
 def command(args, cwd=None, capture=False):
@@ -249,7 +249,7 @@ def main():
     mode.add_argument("--deploy", action="store_true")
     mode.add_argument("--verify", action="store_true")
     mode.add_argument("--test-ref", metavar="REF", help="Test and post a status for one explicitly selected commit; do not publish")
-    parser.add_argument("--dev", type=Path, default=Path(r"C:\Claude\dev\gem-automata"))
+    parser.add_argument("--dev", type=Path, default=Path(r"C:\Claude\dev\emberline"))
     parser.add_argument("--automation", type=Path, default=Path(r"C:\Claude\automations\gem_automata_ci"))
     parser.add_argument("--runtime", type=Path, default=Path(r"C:\Claude\runtime\gem-automata"))
     args = parser.parse_args()

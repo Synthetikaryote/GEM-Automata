@@ -1,45 +1,8 @@
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import test from "node:test";
+import assert from 'node:assert/strict';
+import {readFile,access} from 'node:fs/promises';
+import test from 'node:test';
+async function render(path='/'){const {default:worker}=await import('../dist/server/index.js');return worker.fetch(new Request('https://gem-automata.synthetikaryote.chatgpt.site'+path,{headers:{accept:'text/html'}}),{ASSETS:{fetch:async()=>new Response('Not found',{status:404})}},{waitUntil(){},passThroughOnException(){}});}
+test('server delivers the game, start controls, and installable metadata',async()=>{const response=await render();assert.equal(response.status,200);const html=await response.text();assert.match(html,/<title>Riftward/);assert.match(html,/Riftward strategy game/);assert.match(html,/Enter the rift|Waking the wilds/);assert.match(html,/manifest\.webmanifest/);assert.match(html,/apple-touch-icon/);assert.match(html,/viewport-fit=cover/);assert.match(html,/Moonwell/);assert.doesNotMatch(html,/Your site is taking shape|react-loading-skeleton/);});
+test('PWA manifest and art reference real local assets at their declared dimensions',async()=>{const manifest=JSON.parse(await readFile(new URL('../public/manifest.webmanifest',import.meta.url),'utf8'));assert.equal(manifest.display,'standalone');assert.equal(manifest.orientation,'portrait-primary');for(const icon of manifest.icons){const bytes=await readFile(new URL('../public'+icon.src,import.meta.url));assert.equal(`${bytes.readUInt32BE(16)}x${bytes.readUInt32BE(20)}`,icon.sizes);}for(const name of ['battlefield.webp','sprites.png','apple-touch-icon.png'])await access(new URL('../public/art/'+name,import.meta.url));});
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request("http://localhost/", { headers: { accept: "text/html", host: "localhost" } }),
-    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
-    { waitUntil() {}, passThroughOnException() {} },
-  );
-}
-
-test("server-renders the GEM game shell and metadata", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
-  assert.match(html, /<title>GEM — Automata Duel<\/title>/i);
-  assert.match(html, /GEM automation duel/i);
-  assert.match(html, /AUTOMATA DUEL/i);
-  assert.match(html, /Bolt Shooter/i);
-  assert.match(html, /og\.png/i);
-  assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
-});
-
-test("ships the requested automation and combat catalog", async () => {
-  const game = await readFile(new URL("../app/Game.tsx", import.meta.url), "utf8");
-  const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf8");
-
-  for (const requestedPiece of ["Bolt Shooter", "Shield Emitter", "Alloy Wall", "Spider Hatchery", "Hauler Bot", "Conveyor Belt", "Medbay", "Orbit Wisp"]) {
-    assert.match(game, new RegExp(requestedPiece));
-  }
-  assert.equal((game.match(/surprise: true/g) ?? []).length, 20);
-  assert.match(game, /270° GEMSLASH/);
-  assert.match(game, /SIMULATION_INTERVAL_MS = 50/);
-  assert.match(game, /MAX_ATTACKERS_PER_SIDE = 32/);
-  assert.match(game, /diagnosticsRequested/);
-  assert.match(game, /GEM PERF/);
-  assert.doesNotMatch(packageJson, /react-loading-skeleton/);
-});
+test('Emberline has an independent route, install identity, assets and safe-area viewport',async()=>{const response=await render('/emberline');assert.equal(response.status,200);const html=await response.text();assert.match(html,/<title>Emberline/);assert.match(html,/Emberline factory strategy game/);assert.match(html,/emberline.webmanifest/);assert.match(html,/viewport-fit=cover/);assert.match(html,/Play original Riftward/);const manifest=JSON.parse(await readFile(new URL('../public/emberline.webmanifest',import.meta.url),'utf8'));assert.equal(manifest.id,'/emberline');assert.equal(manifest.start_url,'/emberline');assert.equal(manifest.display,'standalone');for(const icon of manifest.icons){const bytes=await readFile(new URL('../public'+icon.src,import.meta.url));assert.equal(`${bytes.readUInt32BE(16)}x${bytes.readUInt32BE(20)}`,icon.sizes);}for(const name of ['battlefield.webp','sprites.png','apple-touch-icon.png'])await access(new URL('../public/emberline-art/'+name,import.meta.url));});

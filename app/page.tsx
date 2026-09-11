@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Game from "./Game";
 
 export const metadata: Metadata = {
-  title: "GEM — Automata Duel",
-  description: "A portrait-first automation battler where gems become machines, creatures, and victory.",
+  title: "Riftward | Keepers of the Wild",
+  description: "A pocket-sized real-time strategy game. Gather from the wild rift, build your sanctum, and overcome a rival keeper.",
 };
 
 export default function Home() {

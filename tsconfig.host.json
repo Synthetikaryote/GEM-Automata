@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "incremental": false },
-  "include": ["app/Game.tsx", "app/page.tsx", "app/layout.tsx"],
+  "include": ["app/Game.tsx", "app/page.tsx", "app/layout.tsx", "app/paths.ts", "app/game/**/*.ts", "app/emberline/**/*.ts", "app/emberline/**/*.tsx"],
   "exclude": ["node_modules", "db", "worker"]
 }

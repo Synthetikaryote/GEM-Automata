@@ -1,19 +1,26 @@
-# GEM Automata: Halo development and release
+# Emberline: Halo development and release
 
-Public game: **https://halo.tail34c017.ts.net:8443/gem-automata/**
+Public Emberline: **https://halo.tail34c017.ts.net:8443/gem-automata/emberline**
+
+Riftward is preserved at **https://halo.tail34c017.ts.net:8443/gem-automata/**.
+Both games ship together from `Synthetikaryote/GEM-Automata`. Shared runtime,
+CI context and task identifiers retain the repository name intentionally.
 
 | Purpose | Location |
 | --- | --- |
-| Writable Git checkout | `C:\Claude\dev\gem-automata` |
+| Writable Git checkout | `C:\Claude\dev\emberline` |
 | Immutable hosted release | `C:\Claude\runtime\gem-automata` |
 | CI runner, worktrees, artifacts and receipts | `C:\Claude\automations\gem_automata_ci` |
 | Server logs | `C:\Claude\logs\gem-automata` |
 | Reserved persistent data | `C:\Claude\data\gem-automata` |
 | Original source import, preserved | `C:\Claude\GEM` |
 
-The data directory is reserved; this version has no persistent save system.
-Each visitor has an independent browser-local match. Reloading starts a new
-duel. There is no account, shared profile, or write API exposed publicly.
+The server-side data directory is reserved. Each browser saves Emberline under
+`emberline-foundry-v1` and Riftward under `riftward-match-v1`. Reloads resume
+paused. Releases preserve these keys and never delete saves. Cache updates only
+delete their own game's outdated asset cache, not saves or the other game's cache.
+The old Sites URL is a different origin; its saves stay there, without automatic
+transfer to Tailscale. There is no account, cloud sync, or public write API.
 The older `gem-duel` game and the Notches/NecroFleet services are separate.
 
 ## Development and verification
@@ -21,23 +28,27 @@ The older `gem-duel` game and the Notches/NecroFleet services are separate.
 Use Node 22.13+ (Halo uses Node 24), Python 3.12, Git and authenticated `gh`.
 
 ```powershell
-cd C:\Claude\dev\gem-automata
+cd C:\Claude\dev\emberline
 npm ci
 npm run dev -- --hostname 127.0.0.1 --port 8815
 npm run ci:local
 ```
 
-The complete gate installs the lockfile, typechecks the hosted React app, tests the original server-rendered
-game, builds the hosted release, exercises its real HTTP server and every
-HTML-referenced module/style/font, checks artifact hashes and path boundaries,
+The complete gate installs the lockfile, typechecks the hosted React app, runs complete deterministic wins/losses in both engines, checks their original-host rendering, builds the hosted release, exercises its real HTTP server and every
+public file including both games' dynamic artwork and hydration modules,
+verifies install identities and offline navigation with simulated worker events, checks artifact hashes and path boundaries,
 and tests publication rollback and freshness. These checks do not establish
 visual quality or physical-phone performance.
 
-`app/Game.tsx` is the existing React game, reused without gameplay changes.
-The hosted build uses vinext's production bundle and renders `/gem-automata`
-to HTML with its complete hydration payload. Explicit rendering works around
-vinext 0.0.50's export probe ignoring `basePath`; its copied font files replace
-Windows source paths in the inline stylesheet. The same assets and fonts ship.
+`app/emberline/` contains Emberline; `app/Game.tsx` and `app/game/` contain Riftward.
+The hosted build uses vinext's production bundles and explicitly renders both
+`/gem-automata/` and `/gem-automata/emberline` with complete hydration payloads.
+This works around vinext 0.0.50's static-export probe ignoring `basePath`.
+`app/paths.ts` scopes client assets and worker registrations. Artifact-only
+manifest/worker URL rewriting preserves the source Sites deployment; cache
+names include the exact release commit so an update refreshes cached artwork.
+The server serves both Emberline trailing-slash forms without an install-blocking
+redirect. Workers stay within `/gem-automata/`, leaving other Halo apps untouched.
 The original Sites build remains available via `npm run build`; its historical
 `.openai/hosting.json` is retained. Halo does not deploy through Sites.
 
@@ -59,7 +70,17 @@ inventories and separate CI receipts, and are reused without rebuilding.
 Unchanged failed commits are also cached to avoid repeated installs and status
 spam. After correcting a transient environment failure, retry explicitly with
 `python scripts/local_ci.py --test-ref <commit-or-ref>`. PRs opened before this
-hosting setup need to rebase onto main to gain its release scripts.
+hosting setup need to incorporate main to gain its release scripts.
+
+Main is protected by the required `local/gem-automata` status and PR workflow.
+Develop on a feature branch, push a PR, and wait for its exact head to pass.
+If testing manually, use `python scripts/local_ci.py --test-ref origin/<branch>`.
+Merge the reviewed, passing head without bypassing protection; main's resulting
+merge commit must pass the gate before publication. Do not deploy feature heads.
+Package version `1.0.0` marks the first Emberline release; the full commit and
+artifact hashes uniquely identify every later deployment. Bump package and
+lockfile versions together for named releases. A GitHub tag/release is a label,
+not permission to bypass the main gate.
 
 Publication acquires an exclusive file lock, rechecks main, stages the verified
 artifact next to the runtime, stops only its own Node process, moves the old

@@ -44,6 +44,7 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    define: { 'process.env.NEXT_PUBLIC_GAME_BASE_PATH': JSON.stringify(process.env.GEM_HOSTED === '1' ? '/gem-automata' : '') },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,
