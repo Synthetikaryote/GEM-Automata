@@ -1,71 +1,85 @@
-# GEM: Automata Duel
+# Emberline: Foundry Wars
 
-GEM is a portrait-first, one-screen automation battler. Two autonomous duelists collect gems, refine them into charge, and spend that charge on machines, defenses, creatures, and production chains. You own the lower half of the arena; a rival AI controls the upper half.
+[Play Emberline publicly](https://halo.tail34c017.ts.net:8443/gem-automata/emberline) · [Play Riftward](https://halo.tail34c017.ts.net:8443/gem-automata/)
 
-**Play publicly:** [GEM: Automata Duel](https://halo.tail34c017.ts.net:8443/gem-automata/).
-No Tailscale installation or login is needed. Each browser runs its own match;
-this version does not save matches across reloads.
+No Tailscale installation or login is required. This repository contains two independent browser games; Emberline is the newest.
 
-Development lives at `C:\Claude\dev\gem-automata`; the read-only hosted release
-lives at `C:\Claude\runtime\gem-automata`. Halo-local CI checks exact commits,
-posts `local/gem-automata` to GitHub, and publishes tested main with rollback.
-See [local operations](docs/LOCAL_OPERATIONS.md) and the [game map](docs/GAME_GUIDE.md).
+Development: `C:\Claude\dev\emberline`. Read-only release: `C:\Claude\runtime\gem-automata`.
+The shared runtime, status and scheduled-task names retain the repository name because both games ship together.
+See [release operations](docs/LOCAL_OPERATIONS.md) for the protected-main CI gate, promotion, backups and recovery, and [the code map](docs/GAME_GUIDE.md) for orientation.
+
+## Emberline: Foundry Wars
+
+**New separate game at `/emberline`.** Original Riftward remains at `/` with its own save and installation identity.
+
+Emberline is a portrait factory RTS with brass machinery, glowing ore, mechanical wolves, siege rams, and shield drones. Your infinite mine sits at the bottom-left rear corner; keepers carry ore to the receiving depot at bottom right. The rival uses the same layout rotated 180 degrees. There are no neutral resource deposits.
+
+Start with the Belt tool: connect the mine's orange output to the depot's cyan input. Drag between ports or tap them in sequence. Ore and alloy visibly travel through conveyors; connected outputs split supply fairly, and full buffers apply backpressure. Mining capacity is shared across outputs. Machines do not produce without their input material.
+
+- Ore delivered to the depot earns 2 credits. Keepers continue hauling between construction jobs.
+- Ore supplied to a Skitterworks produces mechanical wolves; ore supplied to a Signal Lab generates research.
+- A Crucible smelts ore into alloy. Deliver alloy to the depot for 6 credits and 1 stored alloy, or route it directly to a heavy factory.
+- Heavy Industry unlocks Ram Foundries and Aegis Bays. Siege rams outrange flak and pierce core armor. Shield drones heal nearby allies and reduce incoming damage. Wolves can intercept siege; flak counters packs.
+- Logistics research increases throughput, belt speed and keeper capacity. Expanded Command increases army capacity to 18. Reinforced Foundations improves survivability.
+
+The rear economy is protected: enemies cannot kill keepers, mines, depots, or conveyors. Destroyed forward factories retain their connections and rebuild for 40% of their original credit cost. Emergency Grid repairs the base, heals nearby defenders, and slows invaders. Command limits curb runaway armies. After eight minutes both cores overheat to resolve stalemates.
+
+Tap machines to inspect their buffers and connections, upgrade, salvage, or rebuild. Drag blueprints onto the lower grid or tap a blueprint and then a tile. Keyboard: B for Belt, Q for Emergency Grid, Space to pause, Escape to cancel.
+
+Emberline has a separate icon, manifest, service worker, and local save (`emberline-foundry-v1`). Install its `/emberline` page using the browser's Add to Home Screen action. Battles resume paused; saves remain local to the browser or installed app. Original Riftward saves are not migrated or overwritten.
+
+Implementation: `app/emberline/engine.ts`, `renderer.ts`, `Emberline.tsx`, `emberline.css`; independent generated terrain, transparent sprite atlas and icons in `public/emberline-art/`. No new dependencies. Tests cover physical delivery and production, rotational layout, material rejection, research, protected income, rebuilding, counters, healing, full wins/losses and PWA metadata. The gameplay and original-host suite has 18 tests; the hosted release adds three HTTP/PWA/save-isolation tests and six publisher safety tests. Browser interaction and physical iPhone installation have not been tested in this environment.
+
+---
+
+## Riftward: Keepers of the Wild
+
+Riftward is the original fantasy strategy game in **GEM-Automata**: a single-screen, portrait real-time strategy game for a phone browser. The original GEM implementation remains in Git history.
+
 
 ## Play
 
-1. Pick a build piece from the horizontal dock.
-2. Tap an open blue pad in your half of the arena.
-3. Let your runner gather gems—or automate the job with hauler bots, magnets, presses, and conveyors.
-4. Use the **SLASH** button to destroy nearby bullets and wound invading creatures in a 270-degree arc.
-5. Reduce the rival core from 100 HP to zero before it does the same to you.
+The lower realm belongs to you; the Hollow builds in the upper realm. Both keepers mine the same regenerating crystal seams in the wild rift.
 
-The game is designed for a vertical phone screen, but centers itself inside a phone-sized arena on desktop.
+1. Drag a blueprint from the bottom dock onto an empty lower tile. Tapping a blueprint and then a tile also works.
+2. Your keeper walks to each blueprint and constructs it. Between jobs, they mine crystals and physically deliver them to the nearest sanctum or waystation.
+3. Moonwells automatically summon wolves. Thornspires defend and Runestones draw attacks.
+4. Star Archives create knowledge. Research Awakening to unlock Titan Forges, Wisp Lanterns, and Mending Groves.
+5. Destroy the rival sanctum to win. After five minutes, both cores begin to decay to resolve stalemates.
 
-## Build catalog
+Tap a crystal to focus a keeper on it, or tap open ground in your realm to send a keeper there briefly. Tap your buildings to inspect, upgrade, or salvage them. Hire up to four keepers. Rift Pulse heals friendly units and damages/slows enemies near your first keeper, with a 25-second cooldown. A 12-second Rift Bloom doubles mining every minute, starting at 45 seconds.
 
-The core set includes a Bolt Shooter, Shield Emitter, Alloy Wall, Spider Hatchery, Hauler Bot, Conveyor Belt, Medbay, Razorling Den, and Orbit Wisp.
+Wanderer, Warden, and Oracle change the rival's build decision cadence. The rival pays real crystal costs and uses the same construction and hauling rules.
 
-Twenty additional pieces expand the strategy:
+## Phone installation
 
-- Gem Magnet — pulls distant gems into collection range.
-- Prism Press — increases the value of delivered gems.
-- Burst Turret — fires a three-shot spread.
-- Prism Lance — fires slow, heavy piercing beams.
-- Storm Fork — chains lightning through enemy creatures.
-- Frost Lens — slows enemies inside friendly territory.
-- Firefly Roost — launches flying attackers that bypass walls.
-- Siege Beetle — produces slow armored assault creatures.
-- Medic Drone — repairs the most damaged friendly structure.
-- Guardian Golem — stays home and intercepts intruders.
-- Star Mine — detonates when enemies cross the center line.
-- Mirror Pylon — reflects some incoming shots.
-- Mending Grove — repairs every friendly construction.
-- Tempo Coil — accelerates production and weapon cycles.
-- Siphon Bloom — steals unspent charge from the rival.
-- Gem Vault — builds a protected passive reserve.
-- Chance Engine — generates unpredictable jackpots.
-- Rift Gate — deploys new attackers near the center line.
-- Thorn Mesh — damages creatures that strike it.
-- Decoy Idol — absorbs attacks meant for valuable machines.
+Open the desired game's public link and use the browser's **Add to Home Screen** action. A dedicated icon, web manifest, portrait orientation preference, safe-area layout, standalone display, and service worker are included. The field guide contains these directions too.
 
-## Run locally
+Battles automatically save to this device every three seconds and when the page becomes hidden. Returning resumes from a paused state. This is local state, not cross-device cloud synchronization. The service worker caches artwork and loaded game resources for repeat/offline visits after a successful online load. Offline use is best effort and depends on browser storage retention. Tailscale and the original Sites URL are different browser origins: saved battles on the old URL stay there and do not automatically transfer. Physical iPhone installation has not been tested in this environment.
 
-Requires Node.js 22.13 or newer.
+Desktop keys: **1–5** select foundations, **Space** pauses/resumes, **Q** casts Rift Pulse, and **Escape** cancels placement.
 
-```bash
+## Development
+
+Retains the repository's React 19, TypeScript, Vite, vinext, and Cloudflare Worker architecture. No new production dependencies, backend records, or external runtime asset services were added.
+
+```sh
 npm install
 npm run dev
-```
-
-Then open the local URL printed by the development server.
-
-## Checks
-
-```bash
 npm test
 npm run ci:local
 ```
 
-## Tech
+Use Node.js 22.13+ (24 recommended). Gameplay tests import the pure TypeScript simulation and run deterministic complete battles; server tests exercise the compiled Worker and check PWA assets.
 
-GEM is a single-route React game built with Next.js-compatible vinext and Vite. It uses no external art, game engine, database, login, or analytics. All simulation runs locally in the browser. The Halo build ships pre-rendered HTML, the existing React hydration bundle, styles, and fonts through a dependency-free loopback server behind Tailscale Funnel. The original Sites configuration is retained for source history.
+- `app/game/engine.ts`: deterministic simulation, worker orders, economy, research, enemy AI, combat, and save format.
+- `app/game/renderer.ts`: canvas rendering of the real simulation, original sprites, effects, and build grid.
+- `app/game/assets.ts`: explicit source rectangles for the generated sprite atlas.
+- `app/Game.tsx`: touch and keyboard input, HUD, game screens, installation, audio cues, and local saves.
+- `public/art/`: original generated terrain, twelve sprites, and app icons. Only resizing, format conversion, and icon padding were used in asset preparation.
+
+Canvas rendering is independent of the React HUD. Simulation runs at 30 updates/second with a bounded timestep, while visuals use requestAnimationFrame. Each army is capped at 28 combat units plus four keepers, and effects are capped at 110. Existing social preview art remains unchanged.
+
+## Art direction
+
+Original artwork was created with built-in image generation for this game: a moonlit moss-and-stone arena with jade and burgundy realms, a transparent twelve-object fantasy RTS sprite atlas, and a luminous emerald crystal within a broken antique gold ring. Asset briefs specified clear silhouettes, no text, and a consistent elevated RTS viewpoint. The atlas is cropped at render time rather than repainted or replaced with geometry.

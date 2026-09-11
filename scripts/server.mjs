@@ -10,7 +10,7 @@ export async function createServer(root) {
   const release = JSON.parse(await readFile(path.join(root, ".release.json"), "utf8"));
   if (release.app !== "gem-automata") throw new Error("Not a GEM Automata release");
   const web = path.join(root, "web");
-  const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".json": "application/json", ".rsc": "text/x-component" };
+  const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".webp": "image/webp", ".webmanifest": "application/manifest+json", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".json": "application/json", ".rsc": "text/x-component" };
   return http.createServer(async (request, response) => {
     response.setHeader("X-Content-Type-Options", "nosniff");
     response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -31,7 +31,7 @@ export async function createServer(root) {
       if (pathname === "/healthz") {
         send(200, JSON.stringify({ status: "ok", app: release.app, commit: release.commit, version: release.version }), "application/json"); return;
       }
-      const relative = pathname === "/" ? "index.html" : pathname.replace(/^\//, "");
+      const relative = pathname === "/" ? "index.html" : ["/emberline", "/emberline/"].includes(pathname) ? "emberline/index.html" : pathname.replace(/^\//, "");
       if (!Object.hasOwn(release.files, `web/${relative}`)) { send(404, "Not found"); return; }
       const filename = path.resolve(web, relative);
       if (!filename.startsWith(web + path.sep)) { send(404, "Not found"); return; }
